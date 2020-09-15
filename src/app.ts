@@ -1,174 +1,102 @@
-type Admin = {
-  name: string;
-  privileges: string[];
-};
+// const names : Array<string> = [];  // string[]
+// names[0].split(' ')
 
-type Employee = {
-  name: string;
-  startDate: Date;
-};
+// const promise : Promise<string> = new Promise((resolve,reject) => {
+//   setTimeout(()=>{
+//     resolve('This is finally done !!');
+//   },2000);
+// });
 
-type ElevatedEmployee = Admin & Employee; // intersection type
+// promise.then(data => data.split(' '));
 
-const el: ElevatedEmployee = {
-  name: "Nandu",
-  privileges: ["create-server"],
-  startDate: new Date(),
-};
-
-console.log(el);
-
-//can also be implemented using interfaces as shown below
-// interface IAdmin{
-//     name : string;
-//     privileges : string[];
-// }
-
-// interface IEmployee{
-//     name : string;
-//     startDate : Date;
-// }
-
-// interface IElevatedEmployee extends IEmployee,IAdmin{}
-
-// const iel : IElevatedEmployee = {
-//     name : 'Nandu',
-//     privileges : ['create-server'],
-//     startDate : new Date()
-// }
-
-// console.log(iel);
-
-type Combinable = string | number;
-type Numeric = number | boolean;
-
-type Universal = Combinable & Numeric; // Universal will be of type number
-
-//Function overloads to give typescript knowlege about return type expected
-
-function add(a:number,b:number) : number;
-function add(a:string,b:string) : string;
-function add(a:number,b:string) : string;
-function add(a:string,b:number) : string;
-function add(a: Combinable, b: Combinable) {
-  if (typeof a === "string" || typeof b === "string")
-    // this is called type guard using typeof
-    return a.toString() + b.toString();
-  else return a + b;
+//Generic Types gives flexibility with type support
+function merge<T extends object, U extends object>(objA: T, objB: U) {
+  return Object.assign(objA, objB);
 }
 
-const result = add('Nanda ','Kishore'); // with overloads type script infers result correctly as string
-result.split(" ")
+const mergedObj = merge({ name: "Nandu", hobbies: ["sports"] }, { age: 26 });
+console.log(mergedObj);
 
-const fetchedUserData = {
-  id : 'u1',
-  name : 'Nanda',
-  //job : { title : 'CEO' , description : 'My imaginary company'}
+interface Lengthy {
+  length: number;
 }
 
-//console.log(fetchedUserData?.job?.title); // optional chaining
+function countAndDescribe<T extends Lengthy>(element: T): [T, string] {
+  let descriptionText = "Got no values";
+  if (element.length == 1) {
+    descriptionText = "Got 1 element";
+  } else if (element.length > 1) {
+    descriptionText = "Got " + element.length + " elements";
+  }
+  return [element, descriptionText];
+}
 
-const userInput = undefined;
+console.log(countAndDescribe(["Nanda", "Kishore"]));
+console.log(countAndDescribe("Hi there!"));
+console.log(countAndDescribe([]));
 
-const storageData = userInput ?? 'DEFAULT'; // userInput || 'DEFAULT' returns 'DEFAULT' if userInput is undefined or null or '' or 0
-console.log(storageData);                   // Nullish coalescing operator ?? returns 'DEFAULT' only if userinput is null or undefined
+function extractAndConvert<T extends object, U extends keyof T>(
+  obj: T,
+  key: U
+) {
+  return "Value " + obj[key];
+}
 
-type UnknownEmployee = Admin | Employee;
+console.log(extractAndConvert({ name: "Nandu" }, "name"));
 
-// another use case for type guard is when union type is to be checked
-function printEmployeeInformation(emp: UnknownEmployee) {
-  console.log("Name " + emp.name);
+class DataStorage<T extends string | number | boolean> {
+  private data: T[] = [];
 
-  if ("privileges" in emp) {
-    console.log("Previleges " + emp.privileges);
+  addItem(item: T) {
+    this.data.push(item);
   }
 
-  if ("startDate" in emp) {
-    console.log("Start Date " + emp.startDate);
+  removeItem(item: T) {
+    if (this.data.indexOf(item) == -1) return;
+
+    this.data.splice(this.data.indexOf(item), 1);
+  }
+
+  getItems() {
+    return [...this.data];
   }
 }
 
-printEmployeeInformation(el);
+const textStorage = new DataStorage<string>();
+textStorage.addItem("Max");
+textStorage.addItem("Manu");
+textStorage.removeItem("Manu");
+console.log(textStorage.getItems());
 
-printEmployeeInformation({ name: "Nandu", startDate: new Date() });
+// const objStorage = new DataStorage<object>();
+// objStorage.addItem({name:'Max'});
+// objStorage.addItem({name:'Manu'});
+// objStorage.removeItem({name:'Max'});
+// console.log(objStorage.getItems());
 
-class Car {
-  drive() {
-    console.log("Driving a car...");
-  }
+
+//Generic Utitlity Types - Partial and ReadOnly
+interface CourseGoal {
+  title: string;
+  description: string;
+  completeUntil: Date;
 }
 
-class Truck {
-  drive() {
-    console.log("Driving a truck...");
-  }
-  loadCargo(amount: number) {
-    console.log("Loading cargo..." + amount);
-  }
+function createCourseGoal(
+  title: string,
+  description: string,
+  date: Date
+): CourseGoal {
+  let courseGoal: Partial<CourseGoal> = {};
+  courseGoal.title = title;
+  courseGoal.description = description;
+  courseGoal.completeUntil = date;
+  return courseGoal as CourseGoal;
 }
 
-type Vehicle = Car | Truck;
+//works for objects too
+const names : Readonly<string[]> = ["Nanda","Kishore"];
+//names.push("dummy");    // push not allowed
 
-const v1 = new Car();
-const v2 = new Truck();
-
-function useVehicle(vehicle: Vehicle) {
-  vehicle.drive();
-  if (vehicle instanceof Truck)
-    //more elegant way instead of doing 'loadCargo' in vehicle
-    vehicle.loadCargo(1000); // when working with union types and classes
-}
-
-useVehicle(v1);
-useVehicle(v2);
-
-
-//Descriminated unions
-interface Bird {
-  type : 'bird';
-  flyingSpeed: number;
-}
-
-interface Horse {
-  type : 'horse'
-  runningSpeed: number;
-}
-
-type Animal = Bird | Horse;
-
-function moveAnimal(animal: Animal) {
-    let speed;
-    switch (animal.type) {
-      case 'bird':
-        speed = animal.flyingSpeed;
-        break;
-      case 'horse':
-        speed = animal.runningSpeed;
-    }
-    console.log('Moving with speed : '+ speed);
-}
-
-moveAnimal({type:'bird',flyingSpeed : 10});
-
-moveAnimal({type:'horse',runningSpeed: 10});
-
-//const userInputElement = <HTMLInputElement>document.getElementById("user-input")!;   // works with typescript , but causes conflicts with react js syntax
-
-const userInputElement = document.getElementById('user-input')! as HTMLInputElement ; // works for React JSX syntax too 
-userInputElement.value = 'Hi buddy!';
-
-//alternative to '!'
-// const userInputElement = document.getElementById('user-input');
-// if(userInputElement){
-//   (userInputElement as HTMLInputElement).value = 'Hi there!';
-// }
-
-interface ErrorContainer{
-  [prop:string]: string;
-}
-
-const errorBag : ErrorContainer = {
-  email : 'Not a valid email!!',
-  username : 'Must start with a capital letter'
-}
-console.log(errorBag);
+//Use Generic types when you have to lockin to a particular type for an instance , best use case is in classes
+//use union types when flexibility is needed when passing paramaters in a function call
