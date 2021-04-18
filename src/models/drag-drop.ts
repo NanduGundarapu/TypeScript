@@ -1,13 +1,12 @@
-namespace App {
-  //Drag and Drop Interface
-  export interface Draggable {
-    dragStartHandler(event: DragEvent): void;
-    dragEndHandler(event: DragEvent): void;
-  }
+//Drag and Drop Interface
 
-  export interface DragTarget {
-    dragOverHandler(event: DragEvent): void;
-    droppedHandler(event: DragEvent): void;
-    dragLeaveHandler(event: DragEvent): void;
-  }
+export interface Draggable {
+  dragStartHandler(event: DragEvent): void;
+  dragEndHandler(event: DragEvent): void;
+}
+
+export interface DragTarget {
+  dragOverHandler(event: DragEvent): void;
+  droppedHandler(event: DragEvent): void;
+  dragLeaveHandler(event: DragEvent): void;
 }
